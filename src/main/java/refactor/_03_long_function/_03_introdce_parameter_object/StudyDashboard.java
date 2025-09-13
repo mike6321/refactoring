@@ -17,6 +17,13 @@ import java.util.concurrent.Executors;
 
 public class StudyDashboard {
 
+    private final int totalNumberOfEvents;
+
+    // option + command + F
+    public StudyDashboard() {
+        totalNumberOfEvents = 1;
+    }
+
     public static void main(String[] args) throws IOException, InterruptedException {
         StudyDashboard studyDashboard = new StudyDashboard();
         studyDashboard.print();
@@ -27,7 +34,6 @@ public class StudyDashboard {
         GHRepository repository = gitHub.getRepository("mike6321/refactoring");
         List<Participant> participants = new CopyOnWriteArrayList<>();
 
-        int totalNumberOfEvents = 1;
         ExecutorService service = Executors.newFixedThreadPool(8);
         CountDownLatch latch = new CountDownLatch(totalNumberOfEvents);
 
@@ -72,21 +78,21 @@ public class StudyDashboard {
             writer.print(header(totalNumberOfEvents, participants.size()));
 
             participants.forEach(p -> {
-                String markdownForHomework = getMarkdownForParticipant(p, totalNumberOfEvents);
+                String markdownForHomework = getMarkdownForParticipant(new ParticipantPrinter(p, totalNumberOfEvents));
                 writer.print(markdownForHomework);
             });
         }
     }
 
-    private static double getRate(Participant p, int totalNumberOfEvents) {
-        long count = p.homework().values().stream()
+    private static double getRate(ParticipantPrinter participantPrinter) {
+        long count = participantPrinter.participant().homework().values().stream()
                 .filter(v -> v == true)
                 .count();
-        return (double) (count * 100) / totalNumberOfEvents;
+        return (double) (count * 100) / participantPrinter.totalNumberOfEvents();
     }
 
-    private String getMarkdownForParticipant(Participant p, int totalNumberOfEvents) {
-        return String.format("| %s %s | %.2f%% |\n", p.username(), checkMark(p, totalNumberOfEvents), getRate(p, totalNumberOfEvents));
+    private String getMarkdownForParticipant(ParticipantPrinter participantPrinter) {
+        return String.format("| %s %s | %.2f%% |\n", participantPrinter.participant().username(), checkMark(participantPrinter.participant(), participantPrinter.totalNumberOfEvents()), getRate(new ParticipantPrinter(participantPrinter.participant(), participantPrinter.totalNumberOfEvents())));
     }
 
     /**
