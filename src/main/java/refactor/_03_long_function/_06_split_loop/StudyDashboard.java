@@ -34,6 +34,13 @@ public class StudyDashboard {
         GHRepository repository = gitHub.getRepository("mike6321/refactoring");
         List<Participant> participants = new CopyOnWriteArrayList<>();
 
+        checkGithubIssue(repository, participants);
+
+        new StudyPrinter(this.totalNumberOfEvents, participants)
+                .execute();
+    }
+
+    private void checkGithubIssue(GHRepository repository, List<Participant> participants) throws InterruptedException {
         ExecutorService service = Executors.newFixedThreadPool(8);
         CountDownLatch latch = new CountDownLatch(totalNumberOfEvents);
 
@@ -45,20 +52,11 @@ public class StudyDashboard {
                     try {
                         GHIssue issue = repository.getIssue(eventId);
                         List<GHIssueComment> comments = issue.getComments();
-                        Date firstCreatedAt = null;
-                        Participant first = null;
 
-                        for (GHIssueComment comment : comments) {
-                            Participant participant = findParticipant(comment.getUserName(), participants);
-                            participant.setHomeworkDone(eventId);
+                        checkHomewok(comments, participants, eventId);
 
-                            if (firstCreatedAt == null || comment.getCreatedAt().before(firstCreatedAt)) {
-                                firstCreatedAt = comment.getCreatedAt();
-                                first = participant;
-                            }
-                        }
-
-                        firstParticipantsForEachEvent[eventId - 1] = first;
+                        // option + command + n : inline
+                        firstParticipantsForEachEvent[eventId - 1] = findFirst(comments, participants);
                         latch.countDown();
                     } catch (IOException e) {
                         throw new IllegalArgumentException(e);
@@ -69,9 +67,27 @@ public class StudyDashboard {
 
         latch.await();
         service.shutdown();
+    }
 
-        new StudyPrinter(this.totalNumberOfEvents, participants)
-                .execute();
+    private Participant findFirst(List<GHIssueComment> comments, List<Participant> participants) throws IOException {
+        Date firstCreatedAt = null;
+        Participant first = null;
+        for (GHIssueComment comment : comments) {
+            Participant participant = findParticipant(comment.getUserName(), participants);
+
+            if (firstCreatedAt == null || comment.getCreatedAt().before(firstCreatedAt)) {
+                firstCreatedAt = comment.getCreatedAt();
+                first = participant;
+            }
+        }
+        return first;
+    }
+
+    private void checkHomewok(List<GHIssueComment> comments, List<Participant> participants, int eventId) {
+        for (GHIssueComment comment : comments) {
+            Participant participant = findParticipant(comment.getUserName(), participants);
+            participant.setHomeworkDone(eventId);
+        }
     }
 
     private Participant findParticipant(String username, List<Participant> participants) {
