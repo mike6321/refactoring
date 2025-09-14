@@ -63,16 +63,24 @@ public class StudyDashboard {
                 .execute();
     }
 
-    private static Participant findParticipant(String username, List<Participant> participants) {
-        boolean isNewUser = participants.stream().noneMatch(p -> p.username().equals(username));
-        Participant participant = null;
-        if (isNewUser) {
-            participant = new Participant(username);
-            participants.add(participant);
-        } else {
-            participant = participants.stream().filter(p -> p.username().equals(username)).findFirst().orElseThrow();
-        }
+    private Participant findParticipant(String username, List<Participant> participants) {
+        return isNewParticipant(username, participants) ? createNewParticipant(username, participants) :
+                findExistingParticipant(username, participants);
+    }
+
+    private Participant findExistingParticipant(String username, List<Participant> participants) {
+        return participants.stream().filter(p -> p.username().equals(username)).findFirst().orElseThrow();
+    }
+
+    private Participant createNewParticipant(String username, List<Participant> participants) {
+        Participant participant;
+        participant = new Participant(username);
+        participants.add(participant);
         return participant;
+    }
+
+    private boolean isNewParticipant(String username, List<Participant> participants) {
+        return participants.stream().noneMatch(p -> p.username().equals(username));
     }
 
 }
