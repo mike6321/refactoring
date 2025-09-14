@@ -1,4 +1,4 @@
-package refactor._03_long_function._15_decompose_conditional;
+package refactor._03_long_function._05_decompose_conditional;
 
 import java.io.FileWriter;
 import java.io.IOException;
