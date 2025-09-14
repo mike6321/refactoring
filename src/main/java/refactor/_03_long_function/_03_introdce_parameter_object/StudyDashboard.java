@@ -78,21 +78,17 @@ public class StudyDashboard {
             writer.print(header(totalNumberOfEvents, participants.size()));
 
             participants.forEach(p -> {
-                String markdownForHomework = getMarkdownForParticipant(new ParticipantPrinter(p, totalNumberOfEvents));
+                String markdownForHomework = getMarkdownForParticipant(p);
                 writer.print(markdownForHomework);
             });
         }
     }
 
-    private static double getRate(ParticipantPrinter participantPrinter) {
-        long count = participantPrinter.participant().homework().values().stream()
-                .filter(v -> v == true)
-                .count();
-        return (double) (count * 100) / participantPrinter.totalNumberOfEvents();
-    }
-
-    private String getMarkdownForParticipant(ParticipantPrinter participantPrinter) {
-        return String.format("| %s %s | %.2f%% |\n", participantPrinter.participant().username(), checkMark(participantPrinter.participant(), participantPrinter.totalNumberOfEvents()), getRate(new ParticipantPrinter(participantPrinter.participant(), participantPrinter.totalNumberOfEvents())));
+    private String getMarkdownForParticipant(Participant participant) {
+        return String.format("| %s %s | %.2f%% |\n",
+                participant.username(),
+                checkMark(participant, this.totalNumberOfEvents),
+                participant.getRate(this.totalNumberOfEvents));
     }
 
     /**

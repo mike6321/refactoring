@@ -8,15 +8,16 @@ public record Participant(String username, Map<Integer, Boolean> homework) {
         this(username, new HashMap<>());
     }
 
-    public double getRate(double total) {
-        long count = this.homework.values().stream()
-                .filter(v -> v == true)
-                .count();
-        return count * 100 / total;
-    }
-
     public void setHomeworkDone(int index) {
         this.homework.put(index, true);
+    }
+
+    // move instance method - f6
+    double getRate(double totalNumberOfEvents) {
+        long count = homework().values().stream()
+                .filter(v -> v == true)
+                .count();
+        return (count * 100) / totalNumberOfEvents;
     }
 
 }
